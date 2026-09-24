@@ -1,24 +1,189 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { ArrowDown, ArrowUpRight, ChevronLeft, ChevronRight, Instagram, Mail, Pause, Play, X } from "lucide-react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
+import { Button } from "@/components/ui/button";
+import concreteLight from "@/assets/concrete-light.jpg";
+import heroImage from "@/assets/maestrol-hero.jpg";
+import passageFilm from "@/assets/passage-film.jpg";
+import passageReel from "@/assets/passage-reel.asset.json.asset.json";
+import quietHours from "@/assets/quiet-hours.jpg";
+
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "Maestrol Akai — Photographer & Videographer" },
+      { name: "description", content: "The photography and film portfolio of Maestrol Akai — portraits, architecture, motion, and commissioned visual stories." },
+      { property: "og:title", content: "Maestrol Akai — Photographer & Videographer" },
+      { property: "og:description", content: "Selected photography and motion work by Maestrol Akai." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: Portfolio,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+type Category = "All" | "Photography" | "Film";
+
+const works = [
+  { title: "Quiet Hours", detail: "Editorial portrait · 2026", category: "Photography" as const, image: quietHours, width: 1088, height: 1360 },
+  { title: "Passage", detail: "Fashion film · 01:06", category: "Film" as const, image: passageFilm, width: 1920, height: 1088, video: passageReel.url },
+  { title: "Concrete Light", detail: "Architecture study · 2025", category: "Photography" as const, image: concreteLight, width: 768, height: 1024 },
+  { title: "Edge of Weather", detail: "Environmental portrait · 2026", category: "Photography" as const, image: heroImage, width: 1920, height: 1088 },
+];
+
+function Portfolio() {
+  const [filter, setFilter] = useState<Category>("All");
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const [sent, setSent] = useState(false);
+  const filtered = useMemo(() => works.filter((work) => filter === "All" || work.category === filter), [filter]);
+  const activeWork = activeIndex === null ? null : filtered[activeIndex];
+
+  useEffect(() => {
+    const nodes = document.querySelectorAll<HTMLElement>("[data-reveal]");
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => entry.isIntersecting && entry.target.classList.add("is-visible"));
+    }, { threshold: 0.12 });
+    nodes.forEach((node) => observer.observe(node));
+    return () => observer.disconnect();
+  }, [filter]);
+
+  useEffect(() => {
+    if (!activeWork) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setActiveIndex(null);
+      if (event.key === "ArrowRight") setActiveIndex((activeIndex + 1) % filtered.length);
+      if (event.key === "ArrowLeft") setActiveIndex((activeIndex - 1 + filtered.length) % filtered.length);
+    };
+    document.body.classList.add("overflow-hidden");
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.classList.remove("overflow-hidden");
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [activeIndex, activeWork, filtered.length]);
+
+  const submitInquiry = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSent(true);
+  };
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <main className="min-h-screen overflow-x-hidden bg-background text-foreground">
+      <header className="fixed inset-x-0 top-0 z-40 px-4 md:px-10">
+        <div className="glass-panel mx-auto mt-4 flex max-w-[1440px] items-center justify-between px-4 py-3 md:px-5">
+          <a href="#top" className="font-serif text-base">Maestrol Akai</a>
+          <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex" aria-label="Main navigation">
+            <a className="transition-colors hover:text-foreground" href="#work">Work</a>
+            <a className="transition-colors hover:text-foreground" href="#reel">Reel</a>
+            <a className="transition-colors hover:text-foreground" href="#about">About</a>
+          </nav>
+          <Button asChild className="h-9 rounded-sm px-4 shadow-none"><a href="#inquiry">Book a project</a></Button>
+        </div>
+      </header>
+
+      <section id="top" className="relative flex min-h-[94svh] items-end overflow-hidden pb-16 pt-32 md:min-h-screen md:items-center md:pb-20 md:pt-40">
+        <img src={heroImage} width={1920} height={1088} alt="Cinematic portrait on a misty coast" className="hero-drift absolute inset-0 h-full w-full object-cover object-[68%_center]" />
+        <div className="hero-shade absolute inset-0" />
+        <div className="relative z-10 mx-auto w-full max-w-[1440px] px-6 md:px-10">
+          <p className="animate-rise text-xs uppercase tracking-[0.28em] text-muted-foreground">Photography · Videography · Direction</p>
+          <h1 className="animate-rise-delay mt-5 max-w-5xl font-serif text-5xl leading-[0.94] md:text-8xl lg:text-9xl">Maestrol Akai</h1>
+          <p className="animate-rise-late mt-7 max-w-lg text-base leading-relaxed text-muted-foreground md:text-lg">Portraits, campaigns, and films shaped by patient observation and cinematic light.</p>
+          <div className="animate-rise-late mt-9 flex flex-wrap items-center gap-5">
+            <Button asChild size="lg" className="h-12 rounded-sm px-6 shadow-none"><a href="#work">View portfolio <ArrowDown /></a></Button>
+            <a href="#reel" className="story-link text-sm text-foreground">Watch showreel</a>
+          </div>
+          <div className="glass-panel animate-rise-late mt-12 max-w-sm p-5 md:mt-16">
+            <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.22em] text-muted-foreground"><span>Selected works</span><span>2024—26</span></div>
+            <p className="mt-4 font-serif text-xl">“Stillness, in motion.”</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="work" className="mx-auto max-w-[1440px] px-6 py-24 md:px-10 md:py-32">
+        <div data-reveal className="reveal flex flex-col gap-6 border-b border-border pb-6 md:flex-row md:items-end md:justify-between">
+          <div><p className="section-kicker">Portfolio / 01</p><h2 className="mt-3 font-serif text-4xl md:text-5xl">Selected work</h2></div>
+          <div className="flex gap-1" role="group" aria-label="Filter portfolio">
+            {(["All", "Photography", "Film"] as Category[]).map((category) => (
+              <Button key={category} variant={filter === category ? "default" : "ghost"} size="sm" onClick={() => { setFilter(category); setActiveIndex(null); }} className="rounded-sm px-4 shadow-none">{category}</Button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-12">
+          {filtered.map((work, index) => (
+            <article data-reveal key={work.title} className={`reveal group ${index === 0 ? "lg:col-span-7 lg:row-span-2" : "lg:col-span-5"}`}>
+              <button className="glass-card block w-full cursor-zoom-in p-2 text-left" onClick={() => setActiveIndex(index)} aria-label={`Open ${work.title}`}>
+                <div className={`relative overflow-hidden ${index === 0 ? "aspect-[4/5] lg:aspect-[5/6]" : "aspect-[4/3]"}`}>
+                  <img src={work.image} width={work.width} height={work.height} loading="lazy" alt={work.title} className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035]" />
+                  <div className="media-overlay absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                  <div className="absolute bottom-4 right-4 grid size-10 place-items-center bg-primary text-primary-foreground opacity-0 transition-all duration-300 group-hover:opacity-100"><ArrowUpRight /></div>
+                  {work.video && <div className="absolute left-4 top-4 flex items-center gap-2 bg-background/70 px-3 py-2 text-xs uppercase tracking-[0.18em] backdrop-blur-md"><Play className="size-3" /> Film</div>}
+                </div>
+                <div className="flex items-start justify-between gap-4 px-2 pb-2 pt-4">
+                  <div><h3 className="font-serif text-xl">{work.title}</h3><p className="mt-1 text-sm text-muted-foreground">{work.detail}</p></div>
+                  <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">0{index + 1}</span>
+                </div>
+              </button>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="reel" className="mx-auto max-w-[1440px] px-6 py-24 md:px-10 md:py-32">
+        <div data-reveal className="reveal flex items-end justify-between border-b border-border pb-6">
+          <div><p className="section-kicker">Motion / 02</p><h2 className="mt-3 font-serif text-4xl md:text-5xl">Showreel</h2></div>
+          <span className="hidden text-xs uppercase tracking-[0.22em] text-muted-foreground sm:block">Film · 01:06</span>
+        </div>
+        <div data-reveal className="glass-card reveal mt-10 p-2">
+          <div className="relative aspect-video overflow-hidden">
+            {playing ? (
+              <video src={passageReel.url} poster={passageFilm} autoPlay playsInline controls className="h-full w-full object-cover" />
+            ) : (
+              <img src={passageFilm} width={1920} height={1088} loading="lazy" alt="Passage showreel featuring a dancer in motion" className="h-full w-full object-cover" />
+            )}
+            {!playing && <Button size="icon" onClick={() => setPlaying(true)} aria-label="Play showreel" className="absolute left-1/2 top-1/2 size-16 -translate-x-1/2 -translate-y-1/2 rounded-full shadow-xl"><Play className="ml-1 size-5" /></Button>}
+          </div>
+          <div className="flex items-center justify-between gap-4 px-3 py-4"><p className="text-sm text-muted-foreground"><span className="font-serif text-foreground">Passage</span> — movement, light, and memory.</p><Button variant="ghost" size="icon" onClick={() => setPlaying(!playing)} aria-label={playing ? "Pause showreel" : "Play showreel"}>{playing ? <Pause /> : <Play />}</Button></div>
+        </div>
+      </section>
+
+      <section id="about" className="mx-auto grid max-w-[1440px] grid-cols-1 gap-12 px-6 py-24 md:px-10 md:py-32 lg:grid-cols-12">
+        <div data-reveal className="reveal lg:col-span-7"><p className="section-kicker">About / 03</p><p className="mt-6 max-w-3xl font-serif text-3xl leading-snug md:text-5xl">I create images that hold still long enough to be felt—and films that let the feeling move.</p><p className="mt-7 max-w-xl leading-relaxed text-muted-foreground">Maestrol Akai is a photographer and videographer working across portraiture, editorial, campaigns, and cinematic storytelling.</p></div>
+        <div data-reveal className="glass-panel reveal self-end p-7 lg:col-span-5"><p className="section-kicker">Available for</p><div className="mt-5 grid grid-cols-2 gap-y-3 text-sm"><span>Portraits</span><span>Campaigns</span><span>Editorial</span><span>Films</span><span>Events</span><span>Creative direction</span></div></div>
+      </section>
+
+      <section id="inquiry" className="border-t border-border">
+        <div className="mx-auto grid max-w-[1440px] grid-cols-1 gap-12 px-6 py-24 md:px-10 md:py-32 lg:grid-cols-12">
+          <div data-reveal className="reveal lg:col-span-5"><p className="section-kicker">Inquiry / 04</p><h2 className="mt-5 max-w-md font-serif text-4xl leading-tight md:text-6xl">Let’s create a frame worth remembering.</h2><p className="mt-6 max-w-md text-muted-foreground">Share your idea, date, and location. Photography and videography commissions are now open.</p><div className="mt-9 flex gap-3"><Button asChild variant="outline" size="icon" aria-label="Instagram"><a href="https://instagram.com" target="_blank" rel="noreferrer"><Instagram /></a></Button><Button asChild variant="outline" size="icon" aria-label="Email"><a href="mailto:studio@maestrolakai.com"><Mail /></a></Button></div></div>
+          <div data-reveal className="glass-panel reveal p-6 md:p-8 lg:col-span-7">
+            {sent ? <div className="flex min-h-96 flex-col items-center justify-center text-center"><p className="font-serif text-3xl">Your story is in frame.</p><p className="mt-3 text-muted-foreground">Thank you. Maestrol will be in touch shortly.</p><Button className="mt-7 rounded-sm" variant="outline" onClick={() => setSent(false)}>Send another inquiry</Button></div> :
+            <form className="grid grid-cols-1 gap-5 md:grid-cols-2" onSubmit={submitInquiry}>
+              <label className="field-label">Name<input required name="name" className="field" placeholder="Your name" /></label>
+              <label className="field-label">Email<input required type="email" name="email" className="field" placeholder="you@example.com" /></label>
+              <label className="field-label">Project<select name="project" className="field"><option>Photography</option><option>Videography</option><option>Photo + video</option><option>Creative direction</option></select></label>
+              <label className="field-label">Date<input name="date" type="date" className="field" /></label>
+              <label className="field-label md:col-span-2">Tell me about the project<textarea required name="message" rows={5} className="field resize-none" placeholder="The idea, location, and what you need…" /></label>
+              <div className="md:col-span-2"><Button type="submit" size="lg" className="h-12 w-full rounded-sm md:w-auto">Send inquiry <ArrowUpRight /></Button></div>
+            </form>}
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t border-border"><div className="mx-auto flex max-w-[1440px] flex-col gap-4 px-6 py-8 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between md:px-10"><p className="font-serif text-lg text-foreground">Maestrol Akai</p><p>Photography & film · Available worldwide</p><p>© 2026 Maestrol Akai</p></div></footer>
+
+      {activeWork && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 p-4 backdrop-blur-xl" role="dialog" aria-modal="true" aria-label={`${activeWork.title} lightbox`}>
+          <Button variant="ghost" size="icon" className="absolute right-5 top-5 z-10" onClick={() => setActiveIndex(null)} aria-label="Close lightbox"><X /></Button>
+          <Button variant="ghost" size="icon" className="absolute left-3 top-1/2 z-10 md:left-8" onClick={() => setActiveIndex((Number(activeIndex) - 1 + filtered.length) % filtered.length)} aria-label="Previous work"><ChevronLeft /></Button>
+          <div className="flex max-h-[90vh] max-w-6xl flex-col items-center">
+            {activeWork.video ? <video src={activeWork.video} poster={activeWork.image} autoPlay playsInline controls className="max-h-[78vh] max-w-full" /> : <img src={activeWork.image} width={activeWork.width} height={activeWork.height} alt={activeWork.title} className="max-h-[78vh] max-w-full object-contain" />}
+            <div className="mt-4 text-center"><p className="font-serif text-2xl">{activeWork.title}</p><p className="mt-1 text-sm text-muted-foreground">{activeWork.detail}</p></div>
+          </div>
+          <Button variant="ghost" size="icon" className="absolute right-3 top-1/2 z-10 md:right-8" onClick={() => setActiveIndex((Number(activeIndex) + 1) % filtered.length)} aria-label="Next work"><ChevronRight /></Button>
+        </div>
+      )}
+    </main>
   );
 }
