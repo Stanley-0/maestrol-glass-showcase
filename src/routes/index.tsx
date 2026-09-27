@@ -50,7 +50,7 @@ function Portfolio() {
   }, [filter]);
 
   useEffect(() => {
-    if (!activeWork) return;
+    if (!activeWork || activeIndex === null) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setActiveIndex(null);
       if (event.key === "ArrowRight") setActiveIndex((activeIndex + 1) % filtered.length);
