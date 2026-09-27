@@ -77,14 +77,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "FILM MAESTROL" },
-      { name: "description", content: "Photography and film by FILM MAESTROL." },
+      { title: "FILM MAESTROL — Cinematic Photography & Film" },
+      { name: "description", content: "FILM MAESTROL — cinematic photography and film studio." },
       { name: "author", content: "FILM MAESTROL" },
-      { property: "og:title", content: "FILM MAESTROL" },
-      { property: "og:description", content: "Photography and film by FILM MAESTROL." },
+      { property: "og:site_name", content: "FILM MAESTROL" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },

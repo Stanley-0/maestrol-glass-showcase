@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ArrowDown, ArrowUpRight, ChevronLeft, ChevronRight, Instagram, Mail, Pause, Play, X } from "lucide-react";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import concreteLight from "@/assets/concrete-light.jpg";
@@ -12,12 +12,15 @@ import quietHours from "@/assets/quiet-hours.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "FILM MAESTROL — Photographer & Videographer" },
-      { name: "description", content: "The photography and film portfolio of FILM MAESTROL — portraits, architecture, motion, and commissioned visual stories." },
-      { property: "og:title", content: "FILM MAESTROL — Photographer & Videographer" },
-      { property: "og:description", content: "Selected photography and motion work by FILM MAESTROL." },
+      { title: "FILM MAESTROL — Cinematic Photography & Film" },
+      { name: "description", content: "FILM MAESTROL is a photography and film studio creating cinematic portraits, campaigns, editorials and films. Book your project." },
+      { property: "og:title", content: "FILM MAESTROL — Cinematic Photography & Film" },
+      { property: "og:description", content: "Cinematic portraits, campaigns and films by FILM MAESTROL. Photography and videography commissions now open." },
+      { property: "og:site_name", content: "FILM MAESTROL" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "FILM MAESTROL — Cinematic Photography & Film" },
+      { name: "twitter:description", content: "Cinematic portraits, campaigns and films by FILM MAESTROL." },
     ],
   }),
   component: Portfolio,
@@ -39,6 +42,13 @@ function Portfolio() {
   const [sent, setSent] = useState(false);
   const filtered = useMemo(() => works.filter((work) => filter === "All" || work.category === filter), [filter]);
   const activeWork = activeIndex === null ? null : filtered[activeIndex];
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const isOpen = activeIndex !== null;
+
+  useEffect(() => {
+    if (isOpen) closeRef.current?.focus();
+  }, [isOpen]);
 
   useEffect(() => {
     const nodes = document.querySelectorAll<HTMLElement>("[data-reveal]");
@@ -173,15 +183,29 @@ function Portfolio() {
 
       <footer className="border-t border-border"><div className="mx-auto flex max-w-[1440px] flex-col gap-4 px-6 py-8 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between md:px-10"><p className="font-serif text-lg text-foreground">FILM MAESTROL</p><p>Photography & film · Available worldwide</p><p>© 2026 FILM MAESTROL</p></div></footer>
 
-      {activeWork && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 p-4 backdrop-blur-xl" role="dialog" aria-modal="true" aria-label={`${activeWork.title} lightbox`}>
-          <Button variant="ghost" size="icon" className="absolute right-5 top-5 z-10" onClick={() => setActiveIndex(null)} aria-label="Close lightbox"><X /></Button>
-          <Button variant="ghost" size="icon" className="absolute left-3 top-1/2 z-10 md:left-8" onClick={() => setActiveIndex((Number(activeIndex) - 1 + filtered.length) % filtered.length)} aria-label="Previous work"><ChevronLeft /></Button>
+      {activeWork && activeIndex !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 p-4 backdrop-blur-xl"
+          role="dialog" aria-modal="true" aria-label={`${activeWork.title} viewer`}
+          onClick={(e) => { if (e.target === e.currentTarget) setActiveIndex(null); }}
+          onTouchStart={(e) => { touchStart.current = { x: e.touches[0]!.clientX, y: e.touches[0]!.clientY }; }}
+          onTouchEnd={(e) => {
+            const start = touchStart.current; touchStart.current = null;
+            if (!start) return;
+            const dx = e.changedTouches[0]!.clientX - start.x;
+            const dy = e.changedTouches[0]!.clientY - start.y;
+            if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) setActiveIndex((activeIndex + (dx < 0 ? 1 : -1) + filtered.length) % filtered.length);
+            else if (dy > 90 && Math.abs(dy) > Math.abs(dx)) setActiveIndex(null);
+          }}
+        >
+          <div className="absolute left-5 top-5 z-10 text-xs uppercase tracking-[0.22em] text-muted-foreground">{activeIndex + 1} / {filtered.length}</div>
+          <Button ref={closeRef} variant="outline" className="absolute right-4 top-4 z-10 h-10 gap-2 rounded-sm px-3" onClick={() => setActiveIndex(null)} aria-label="Close viewer"><X /> <span className="hidden sm:inline">Close</span><kbd className="hidden text-[10px] text-muted-foreground sm:inline">ESC</kbd></Button>
+          <Button variant="ghost" size="icon" className="absolute left-3 top-1/2 z-10 hidden md:left-8 sm:inline-flex" onClick={() => setActiveIndex((activeIndex - 1 + filtered.length) % filtered.length)} aria-label="Previous work"><ChevronLeft /></Button>
           <div className="flex max-h-[90vh] max-w-6xl flex-col items-center">
-            {activeWork.video ? <video src={activeWork.video} poster={activeWork.image} autoPlay playsInline controls className="max-h-[78vh] max-w-full" /> : <img src={activeWork.image} width={activeWork.width} height={activeWork.height} alt={activeWork.title} className="max-h-[78vh] max-w-full object-contain" />}
-            <div className="mt-4 text-center"><p className="font-serif text-2xl">{activeWork.title}</p><p className="mt-1 text-sm text-muted-foreground">{activeWork.detail}</p></div>
+            {activeWork.video ? <video key={activeWork.title} src={activeWork.video} poster={activeWork.image} autoPlay playsInline controls className="max-h-[74vh] max-w-full" /> : <img src={activeWork.image} width={activeWork.width} height={activeWork.height} alt={activeWork.title} draggable={false} className="max-h-[74vh] max-w-full select-none object-contain" />}
+            <div className="mt-4 text-center"><p className="font-serif text-2xl">{activeWork.title}</p><p className="mt-1 text-sm text-muted-foreground">{activeWork.detail}</p><p className="mt-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground"><span className="hidden sm:inline">← → to browse · Esc to close</span><span className="sm:hidden">Swipe to browse · swipe down to close</span></p></div>
           </div>
-          <Button variant="ghost" size="icon" className="absolute right-3 top-1/2 z-10 md:right-8" onClick={() => setActiveIndex((Number(activeIndex) + 1) % filtered.length)} aria-label="Next work"><ChevronRight /></Button>
+          <Button variant="ghost" size="icon" className="absolute right-3 top-1/2 z-10 hidden md:right-8 sm:inline-flex" onClick={() => setActiveIndex((activeIndex + 1) % filtered.length)} aria-label="Next work"><ChevronRight /></Button>
         </div>
       )}
     </main>
