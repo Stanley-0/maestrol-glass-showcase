@@ -12,10 +12,10 @@ import quietHours from "@/assets/quiet-hours.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Maestrol Akai — Photographer & Videographer" },
-      { name: "description", content: "The photography and film portfolio of Maestrol Akai — portraits, architecture, motion, and commissioned visual stories." },
-      { property: "og:title", content: "Maestrol Akai — Photographer & Videographer" },
-      { property: "og:description", content: "Selected photography and motion work by Maestrol Akai." },
+      { title: "FILM MAESTROL — Photographer & Videographer" },
+      { name: "description", content: "The photography and film portfolio of FILM MAESTROL — portraits, architecture, motion, and commissioned visual stories." },
+      { property: "og:title", content: "FILM MAESTROL — Photographer & Videographer" },
+      { property: "og:description", content: "Selected photography and motion work by FILM MAESTROL." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -50,7 +50,7 @@ function Portfolio() {
   }, [filter]);
 
   useEffect(() => {
-    if (!activeWork) return;
+    if (!activeWork || activeIndex === null) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setActiveIndex(null);
       if (event.key === "ArrowRight") setActiveIndex((activeIndex + 1) % filtered.length);
@@ -73,7 +73,7 @@ function Portfolio() {
     <main className="min-h-screen overflow-x-hidden bg-background text-foreground">
       <header className="fixed inset-x-0 top-0 z-40 px-4 md:px-10">
         <div className="glass-panel mx-auto mt-4 flex max-w-[1440px] items-center justify-between px-4 py-3 md:px-5">
-          <a href="#top" className="font-serif text-base">Maestrol Akai</a>
+          <a href="#top" className="font-serif text-base">FILM MAESTROL</a>
           <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex" aria-label="Main navigation">
             <a className="transition-colors hover:text-foreground" href="#work">Work</a>
             <a className="transition-colors hover:text-foreground" href="#reel">Reel</a>
@@ -88,7 +88,7 @@ function Portfolio() {
         <div className="hero-shade absolute inset-0" />
         <div className="relative z-10 mx-auto w-full max-w-[1440px] px-6 md:px-10">
           <p className="animate-rise text-xs uppercase tracking-[0.28em] text-muted-foreground">Photography · Videography · Direction</p>
-          <h1 className="animate-rise-delay mt-5 max-w-5xl font-serif text-5xl leading-[0.94] md:text-8xl lg:text-9xl">Maestrol Akai</h1>
+          <h1 className="animate-rise-delay mt-5 max-w-5xl font-serif text-5xl leading-[0.94] md:text-8xl lg:text-9xl">FILM MAESTROL</h1>
           <p className="animate-rise-late mt-7 max-w-lg text-base leading-relaxed text-muted-foreground md:text-lg">Portraits, campaigns, and films shaped by patient observation and cinematic light.</p>
           <div className="animate-rise-late mt-9 flex flex-wrap items-center gap-5">
             <Button asChild size="lg" className="h-12 rounded-sm px-6 shadow-none"><a href="#work">View portfolio <ArrowDown /></a></Button>
@@ -150,7 +150,7 @@ function Portfolio() {
       </section>
 
       <section id="about" className="mx-auto grid max-w-[1440px] grid-cols-1 gap-12 px-6 py-24 md:px-10 md:py-32 lg:grid-cols-12">
-        <div data-reveal className="reveal lg:col-span-7"><p className="section-kicker">About / 03</p><p className="mt-6 max-w-3xl font-serif text-3xl leading-snug md:text-5xl">I create images that hold still long enough to be felt—and films that let the feeling move.</p><p className="mt-7 max-w-xl leading-relaxed text-muted-foreground">Maestrol Akai is a photographer and videographer working across portraiture, editorial, campaigns, and cinematic storytelling.</p></div>
+        <div data-reveal className="reveal lg:col-span-7"><p className="section-kicker">About / 03</p><p className="mt-6 max-w-3xl font-serif text-3xl leading-snug md:text-5xl">I create images that hold still long enough to be felt—and films that let the feeling move.</p><p className="mt-7 max-w-xl leading-relaxed text-muted-foreground">FILM MAESTROL is the studio of a photographer and videographer working across portraiture, editorial, campaigns, and cinematic storytelling.</p></div>
         <div data-reveal className="glass-panel reveal self-end p-7 lg:col-span-5"><p className="section-kicker">Available for</p><div className="mt-5 grid grid-cols-2 gap-y-3 text-sm"><span>Portraits</span><span>Campaigns</span><span>Editorial</span><span>Films</span><span>Events</span><span>Creative direction</span></div></div>
       </section>
 
@@ -171,7 +171,7 @@ function Portfolio() {
         </div>
       </section>
 
-      <footer className="border-t border-border"><div className="mx-auto flex max-w-[1440px] flex-col gap-4 px-6 py-8 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between md:px-10"><p className="font-serif text-lg text-foreground">Maestrol Akai</p><p>Photography & film · Available worldwide</p><p>© 2026 Maestrol Akai</p></div></footer>
+      <footer className="border-t border-border"><div className="mx-auto flex max-w-[1440px] flex-col gap-4 px-6 py-8 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between md:px-10"><p className="font-serif text-lg text-foreground">FILM MAESTROL</p><p>Photography & film · Available worldwide</p><p>© 2026 FILM MAESTROL</p></div></footer>
 
       {activeWork && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 p-4 backdrop-blur-xl" role="dialog" aria-modal="true" aria-label={`${activeWork.title} lightbox`}>
