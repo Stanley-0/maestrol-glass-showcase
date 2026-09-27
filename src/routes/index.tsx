@@ -188,12 +188,12 @@ function Portfolio() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 p-4 backdrop-blur-xl"
           role="dialog" aria-modal="true" aria-label={`${activeWork.title} viewer`}
           onClick={(e) => { if (e.target === e.currentTarget) setActiveIndex(null); }}
-          onTouchStart={(e) => { touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; }}
+          onTouchStart={(e) => { touchStart.current = { x: e.touches[0]!.clientX, y: e.touches[0]!.clientY }; }}
           onTouchEnd={(e) => {
             const start = touchStart.current; touchStart.current = null;
             if (!start) return;
-            const dx = e.changedTouches[0].clientX - start.x;
-            const dy = e.changedTouches[0].clientY - start.y;
+            const dx = e.changedTouches[0]!.clientX - start.x;
+            const dy = e.changedTouches[0]!.clientY - start.y;
             if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) setActiveIndex((activeIndex + (dx < 0 ? 1 : -1) + filtered.length) % filtered.length);
             else if (dy > 90 && Math.abs(dy) > Math.abs(dx)) setActiveIndex(null);
           }}
