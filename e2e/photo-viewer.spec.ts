@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 async function openViewer(page: Page, title = "Quiet Hours") {
-  await page.goto("/");
+  await page.goto("/", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: `Open ${title}` }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
