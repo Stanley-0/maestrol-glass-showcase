@@ -6,5 +6,5 @@
 - [x] Add a stylish inquiry form, social links, and clear photography and videography booking actions.
 - [ ] Verify desktop and mobile presentation and interactions.
 
-- [ ] Viewer: error state + retry when a photo fails to load
-- [ ] Browser tests: arrow keys, Escape, swipe in viewer
+- [x] Viewer: error state + retry when a photo fails to load
+- [x] Browser tests: arrow keys, Escape, swipe in viewer
