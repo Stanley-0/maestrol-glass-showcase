@@ -21,6 +21,15 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "FILM MAESTROL — Cinematic Photography & Film" },
       { name: "twitter:description", content: "Cinematic portraits, campaigns and films by FILM MAESTROL." },
+      { property: "og:url", content: "https://project--21dc5731-33c5-46b6-8818-5240370d815d.lovable.app/" },
+      { property: "og:image", content: "https://project--21dc5731-33c5-46b6-8818-5240370d815d.lovable.app/og-image.jpg" },
+      { property: "og:image:secure_url", content: "https://project--21dc5731-33c5-46b6-8818-5240370d815d.lovable.app/og-image.jpg" },
+      { property: "og:image:type", content: "image/jpeg" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:alt", content: "FILM MAESTROL — cinematic photography and film" },
+      { name: "twitter:image", content: "https://project--21dc5731-33c5-46b6-8818-5240370d815d.lovable.app/og-image.jpg" },
+      { name: "twitter:image:alt", content: "FILM MAESTROL — cinematic photography and film" },
     ],
   }),
   component: Portfolio,
@@ -44,11 +53,30 @@ function Portfolio() {
   const activeWork = activeIndex === null ? null : filtered[activeIndex];
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const [loaded, setLoaded] = useState<Record<string, boolean>>({});
   const isOpen = activeIndex !== null;
 
   useEffect(() => {
-    if (isOpen) closeRef.current?.focus();
+    if (isOpen) {
+      returnFocusRef.current = document.activeElement as HTMLElement | null;
+      closeRef.current?.focus();
+      return () => { returnFocusRef.current?.focus(); };
+    }
+    return undefined;
   }, [isOpen]);
+
+  useEffect(() => {
+    if (activeIndex === null || filtered.length < 2) return;
+    [1, -1].forEach((step) => {
+      const work = filtered[(activeIndex + step + filtered.length) % filtered.length];
+      if (!work) return;
+      const img = new Image();
+      img.src = work.image;
+      img.decode?.().then(() => setLoaded((s) => ({ ...s, [work.image]: true }))).catch(() => {});
+    });
+  }, [activeIndex, filtered]);
 
   useEffect(() => {
     const nodes = document.querySelectorAll<HTMLElement>("[data-reveal]");
@@ -65,6 +93,13 @@ function Portfolio() {
       if (event.key === "Escape") setActiveIndex(null);
       if (event.key === "ArrowRight") setActiveIndex((activeIndex + 1) % filtered.length);
       if (event.key === "ArrowLeft") setActiveIndex((activeIndex - 1 + filtered.length) % filtered.length);
+      if (event.key === "Tab" && dialogRef.current) {
+        const items = Array.from(dialogRef.current.querySelectorAll<HTMLElement>('button, video[controls], [href], [tabindex]:not([tabindex="-1"])')).filter((el) => el.offsetParent !== null);
+        if (!items.length) return;
+        const first = items[0]!, last = items[items.length - 1]!;
+        if (event.shiftKey && (document.activeElement === first || !dialogRef.current.contains(document.activeElement))) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && (document.activeElement === last || !dialogRef.current.contains(document.activeElement))) { event.preventDefault(); first.focus(); }
+      }
     };
     document.body.classList.add("overflow-hidden");
     window.addEventListener("keydown", onKey);
@@ -185,8 +220,9 @@ function Portfolio() {
 
       {activeWork && activeIndex !== null && (
         <div
+          ref={dialogRef}
           className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 p-4 backdrop-blur-xl"
-          role="dialog" aria-modal="true" aria-label={`${activeWork.title} viewer`}
+          role="dialog" aria-modal="true" aria-labelledby="viewer-title" aria-describedby="viewer-desc"
           onClick={(e) => { if (e.target === e.currentTarget) setActiveIndex(null); }}
           onTouchStart={(e) => { touchStart.current = { x: e.touches[0]!.clientX, y: e.touches[0]!.clientY }; }}
           onTouchEnd={(e) => {
@@ -198,14 +234,21 @@ function Portfolio() {
             else if (dy > 90 && Math.abs(dy) > Math.abs(dx)) setActiveIndex(null);
           }}
         >
-          <div className="absolute left-5 top-5 z-10 text-xs uppercase tracking-[0.22em] text-muted-foreground">{activeIndex + 1} / {filtered.length}</div>
-          <Button ref={closeRef} variant="outline" className="absolute right-4 top-4 z-10 h-10 gap-2 rounded-sm px-3" onClick={() => setActiveIndex(null)} aria-label="Close viewer"><X /> <span className="hidden sm:inline">Close</span><kbd className="hidden text-[10px] text-muted-foreground sm:inline">ESC</kbd></Button>
-          <Button variant="ghost" size="icon" className="absolute left-3 top-1/2 z-10 hidden md:left-8 sm:inline-flex" onClick={() => setActiveIndex((activeIndex - 1 + filtered.length) % filtered.length)} aria-label="Previous work"><ChevronLeft /></Button>
+          <div className="absolute left-5 top-5 z-10 text-xs uppercase tracking-[0.22em] text-muted-foreground" aria-live="polite" aria-atomic="true"><span className="sr-only">Work </span>{activeIndex + 1} <span aria-hidden="true">/</span><span className="sr-only"> of </span> {filtered.length}<span className="sr-only">: {activeWork.title}</span></div>
+          <Button ref={closeRef} variant="outline" className="absolute right-4 top-4 z-10 h-11 gap-2 rounded-sm px-3" onClick={() => setActiveIndex(null)} aria-label="Close photo viewer"><X aria-hidden="true" /> <span className="hidden sm:inline" aria-hidden="true">Close</span><kbd className="hidden text-[10px] text-muted-foreground sm:inline" aria-hidden="true">ESC</kbd></Button>
+          <Button variant="ghost" size="icon" className="absolute left-3 top-1/2 z-10 hidden min-h-11 min-w-11 md:left-8 sm:inline-flex" onClick={() => setActiveIndex((activeIndex - 1 + filtered.length) % filtered.length)} aria-label={`Previous: ${filtered[(activeIndex - 1 + filtered.length) % filtered.length]?.title}`}><ChevronLeft aria-hidden="true" /></Button>
           <div className="flex max-h-[90vh] max-w-6xl flex-col items-center">
-            {activeWork.video ? <video key={activeWork.title} src={activeWork.video} poster={activeWork.image} autoPlay playsInline controls className="max-h-[74vh] max-w-full" /> : <img src={activeWork.image} width={activeWork.width} height={activeWork.height} alt={activeWork.title} draggable={false} className="max-h-[74vh] max-w-full select-none object-contain" />}
-            <div className="mt-4 text-center"><p className="font-serif text-2xl">{activeWork.title}</p><p className="mt-1 text-sm text-muted-foreground">{activeWork.detail}</p><p className="mt-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground"><span className="hidden sm:inline">← → to browse · Esc to close</span><span className="sm:hidden">Swipe to browse · swipe down to close</span></p></div>
+            <div className="relative grid min-h-48 min-w-48 place-items-center">
+              {!activeWork.video && !loaded[activeWork.image] && (
+                <div className="absolute inset-0 grid place-items-center" role="status" aria-label="Loading photo">
+                  <div className="size-8 animate-spin rounded-full border-2 border-muted border-t-foreground motion-reduce:animate-none" />
+                </div>
+              )}
+              {activeWork.video ? <video key={activeWork.title} src={activeWork.video} poster={activeWork.image} autoPlay playsInline controls aria-label={`${activeWork.title} film`} className="max-h-[74vh] max-w-full" /> : <img key={activeWork.image} src={activeWork.image} width={activeWork.width} height={activeWork.height} alt={`${activeWork.title} — ${activeWork.detail}`} draggable={false} onLoad={() => setLoaded((s) => ({ ...s, [activeWork.image]: true }))} className={`max-h-[74vh] max-w-full select-none object-contain transition-opacity duration-500 ${loaded[activeWork.image] ? "opacity-100" : "opacity-0"}`} />}
+            </div>
+            <div className="mt-4 text-center"><h2 id="viewer-title" className="font-serif text-2xl">{activeWork.title}</h2><p className="mt-1 text-sm text-muted-foreground">{activeWork.detail}</p><p id="viewer-desc" className="mt-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground"><span className="hidden sm:inline">← → to browse · Esc to close</span><span className="sm:hidden">Swipe to browse · swipe down to close</span></p></div>
           </div>
-          <Button variant="ghost" size="icon" className="absolute right-3 top-1/2 z-10 hidden md:right-8 sm:inline-flex" onClick={() => setActiveIndex((activeIndex + 1) % filtered.length)} aria-label="Next work"><ChevronRight /></Button>
+          <Button variant="ghost" size="icon" className="absolute right-3 top-1/2 z-10 hidden min-h-11 min-w-11 md:right-8 sm:inline-flex" onClick={() => setActiveIndex((activeIndex + 1) % filtered.length)} aria-label={`Next: ${filtered[(activeIndex + 1) % filtered.length]?.title}`}><ChevronRight aria-hidden="true" /></Button>
         </div>
       )}
     </main>
