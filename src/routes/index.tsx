@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowDown, ArrowUpRight, ChevronLeft, ChevronRight, Instagram, Mail, Pause, Play, X } from "lucide-react";
+import { ArrowDown, ArrowUpRight, ChevronLeft, ChevronRight, Instagram, Mail, Pause, Play, RotateCw, X } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,9 @@ export const Route = createFileRoute("/")({
       { name: "twitter:image", content: "https://project--21dc5731-33c5-46b6-8818-5240370d815d.lovable.app/og-image.jpg" },
       { name: "twitter:image:alt", content: "FILM MAESTROL — cinematic photography and film" },
     ],
+    links: [
+      { rel: "canonical", href: "https://project--21dc5731-33c5-46b6-8818-5240370d815d.lovable.app/" },
+    ],
   }),
   component: Portfolio,
 });
@@ -56,6 +59,8 @@ function Portfolio() {
   const dialogRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const [loaded, setLoaded] = useState<Record<string, boolean>>({});
+  const [failed, setFailed] = useState<Record<string, boolean>>({});
+  const [retries, setRetries] = useState<Record<string, number>>({});
   const isOpen = activeIndex !== null;
 
   useEffect(() => {
@@ -239,12 +244,22 @@ function Portfolio() {
           <Button variant="ghost" size="icon" className="absolute left-3 top-1/2 z-10 hidden min-h-11 min-w-11 md:left-8 sm:inline-flex" onClick={() => setActiveIndex((activeIndex - 1 + filtered.length) % filtered.length)} aria-label={`Previous: ${filtered[(activeIndex - 1 + filtered.length) % filtered.length]?.title}`}><ChevronLeft aria-hidden="true" /></Button>
           <div className="flex max-h-[90vh] max-w-6xl flex-col items-center">
             <div className="relative grid min-h-48 min-w-48 place-items-center">
-              {!activeWork.video && !loaded[activeWork.image] && (
+              {!activeWork.video && !loaded[activeWork.image] && !failed[activeWork.image] && (
                 <div className="absolute inset-0 grid place-items-center" role="status" aria-label="Loading photo">
                   <div className="size-8 animate-spin rounded-full border-2 border-muted border-t-foreground motion-reduce:animate-none" />
                 </div>
               )}
-              {activeWork.video ? <video key={activeWork.title} src={activeWork.video} poster={activeWork.image} autoPlay playsInline controls aria-label={`${activeWork.title} film`} className="max-h-[74vh] max-w-full" /> : <img key={activeWork.image} src={activeWork.image} width={activeWork.width} height={activeWork.height} alt={`${activeWork.title} — ${activeWork.detail}`} draggable={false} onLoad={() => setLoaded((s) => ({ ...s, [activeWork.image]: true }))} className={`max-h-[74vh] max-w-full select-none object-contain transition-opacity duration-500 ${loaded[activeWork.image] ? "opacity-100" : "opacity-0"}`} />}
+              {!activeWork.video && failed[activeWork.image] ? (
+                <div role="alert" className="glass-panel flex w-[min(28rem,80vw)] flex-col items-center gap-4 p-8 text-center">
+                  <p className="font-serif text-xl">This photo didn’t load</p>
+                  <p className="text-sm text-muted-foreground">Check your connection and try again.</p>
+                  <Button variant="outline" className="rounded-sm" onClick={() => { const src = activeWork.image; setFailed((s) => ({ ...s, [src]: false })); setRetries((s) => ({ ...s, [src]: (s[src] ?? 0) + 1 })); }}><RotateCw aria-hidden="true" /> Try again</Button>
+                </div>
+              ) : activeWork.video ? <video key={activeWork.title} src={activeWork.video} poster={activeWork.image} autoPlay playsInline controls aria-label={`${activeWork.title} film`} className="max-h-[74vh] max-w-full" /> : (() => {
+                const tries = retries[activeWork.image] ?? 0;
+                const src = tries ? `${activeWork.image}${activeWork.image.includes("?") ? "&" : "?"}retry=${tries}` : activeWork.image;
+                return <img key={`${activeWork.image}-${tries}`} src={src} width={activeWork.width} height={activeWork.height} alt={`${activeWork.title} — ${activeWork.detail}`} draggable={false} onLoad={() => setLoaded((s) => ({ ...s, [activeWork.image]: true }))} onError={() => { setLoaded((s) => ({ ...s, [activeWork.image]: false })); setFailed((s) => ({ ...s, [activeWork.image]: true })); }} className={`max-h-[74vh] max-w-full select-none object-contain transition-opacity duration-500 ${loaded[activeWork.image] ? "opacity-100" : "opacity-0"}`} />;
+              })()}
             </div>
             <div className="mt-4 text-center"><h2 id="viewer-title" className="font-serif text-2xl">{activeWork.title}</h2><p className="mt-1 text-sm text-muted-foreground">{activeWork.detail}</p><p id="viewer-desc" className="mt-3 text-[11px] uppercase tracking-[0.2em] text-muted-foreground"><span className="hidden sm:inline">← → to browse · Esc to close</span><span className="sm:hidden">Swipe to browse · swipe down to close</span></p></div>
           </div>
