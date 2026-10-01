@@ -31,6 +31,9 @@ export const Route = createFileRoute("/")({
       { name: "twitter:image", content: "https://project--21dc5731-33c5-46b6-8818-5240370d815d.lovable.app/og-image.jpg" },
       { name: "twitter:image:alt", content: "FILM MAESTROL — cinematic photography and film" },
     ],
+    links: [
+      { rel: "canonical", href: "https://project--21dc5731-33c5-46b6-8818-5240370d815d.lovable.app/" },
+    ],
   }),
   component: Portfolio,
 });
