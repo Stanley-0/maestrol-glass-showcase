@@ -64,6 +64,7 @@ function Portfolio() {
       closeRef.current?.focus();
       return () => { returnFocusRef.current?.focus(); };
     }
+    return undefined;
   }, [isOpen]);
 
   useEffect(() => {
