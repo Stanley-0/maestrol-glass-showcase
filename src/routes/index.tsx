@@ -59,6 +59,8 @@ function Portfolio() {
   const dialogRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const [loaded, setLoaded] = useState<Record<string, boolean>>({});
+  const [failed, setFailed] = useState<Record<string, boolean>>({});
+  const [retries, setRetries] = useState<Record<string, number>>({});
   const isOpen = activeIndex !== null;
 
   useEffect(() => {
