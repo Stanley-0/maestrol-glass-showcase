@@ -51,7 +51,7 @@ test.describe("full-screen photo viewer", () => {
 
   test("shows an error with a working retry when a photo fails", async ({ page }) => {
     let block = true;
-    await page.route(/concrete-light.*\.jpg/, (route) => (block ? route.abort() : route.continue()));
+    await page.route(/concrete-light.*\.jpg/, (route) => (block && route.request().resourceType() === "image" ? route.abort() : route.continue()));
     const dialog = await openViewer(page, "Concrete Light");
     await expect(dialog.getByRole("alert")).toContainText("didn’t load");
     block = false;
